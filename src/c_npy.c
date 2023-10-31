@@ -96,7 +96,14 @@ static DescrDict parse_dict(char *dictstr) {
     while (*cursor==':' || *cursor==' ') cursor++;
 
     if (strcmp(new_key, "descr") == 0) {
-      result.data_type = get_python_string(&cursor);
+      char *type = get_python_string(&cursor);
+      if (strcmp(type, "<f8") == 0) {
+        result.data_type = CNPY_DOUBLE;
+      } else {
+        fprintf(stderr, "Type '%s' is unknown. Consider implementing it?\n", type);
+        exit(1);
+      }
+      free(type);
     } else if (strcmp(new_key, "fortran_order") == 0) {
       result.fortran_order = get_python_bool(&cursor);
     } else if (strcmp(new_key, "shape") == 0) {

@@ -26,7 +26,6 @@ int main(void) {
     printf("    Dim[%zu] has size: %zu\n", i, numpy_file.description.shape.eles[i]);
   }
 
-  free(numpy_file.description.data_type);
   free(numpy_file.description.shape.eles);
   free(buff_addr);
 
