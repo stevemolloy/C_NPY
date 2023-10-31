@@ -1,7 +1,122 @@
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "sm_lib.h"
+
+typedef struct {
+  size_t *eles;
+  size_t dims;
+} PythonTuple;
+
+typedef struct {
+  char *data_type;
+  bool fortran_order;
+  PythonTuple shape;
+} DescrDict;
+
+void move_cursor_to_next_key(char **cursor) {
+  (*cursor)++;
+  while (**cursor!='\'') (*cursor)++;
+}
+
+char* get_python_string(char **pystr) {
+  assert(*pystr[0]=='\'');
+
+  char *start = *pystr + 1;
+  char *cursor = *pystr + 1;
+  size_t len = 0;
+  while (*cursor != '\'') {
+    len++;
+    cursor++;
+  }
+
+  char *result = calloc(len+1, sizeof(char));
+  memcpy(result, start, len);
+
+  *pystr = cursor + 1;
+
+  return result;
+}
+
+bool get_python_bool(char **pystr) {
+  if (strncmp(*pystr, "True", 4) == 0) {
+    *pystr += 4;
+    return true;
+  } else if (strncmp(*pystr, "False", 5) == 0) {
+    *pystr += 5;
+    return false;
+  }
+  assert(0 && "Unreachable");
+}
+
+PythonTuple get_python_tuple(char **pystr) {
+  PythonTuple result = {0};
+  char *cursor = *pystr;
+  char *tuple_start;
+  char *tuple_end;
+
+  while (*cursor != '(') cursor++;
+  tuple_start = cursor + 1;
+
+  while (*cursor != ')') cursor++;
+  tuple_end = cursor;
+
+  cursor = tuple_start;
+  result.dims = 1;
+  while (cursor != tuple_end) {
+    if (*cursor == ',') result.dims++;
+    cursor++;
+  }
+
+  result.eles = malloc(result.dims * sizeof(size_t));
+
+  char *tuplestr = calloc((size_t)(tuple_end - tuple_start) + 1, sizeof(char));
+  memcpy(tuplestr, tuple_start, (size_t)(tuple_end - tuple_start));
+
+  size_t dim = 0;
+  char *tok = strtok(tuplestr, ",");
+  while (tok != NULL) {
+    result.eles[dim] = (size_t)atoi(tok);
+    dim++;
+    tok = strtok(NULL, ",");
+  }
+
+  return result;
+}
+
+DescrDict parse_dict(char *dictstr) {
+  DescrDict result = {0};
+  result.data_type = calloc(32, sizeof(char));
+
+  char* new_key;
+
+  char *cursor = dictstr;
+  while (*cursor!='\'') cursor++;
+
+  for (size_t i=0; i<3; i++) {
+    new_key = get_python_string(&cursor);
+
+    while (*cursor==':' || *cursor==' ') cursor++;
+
+    if (strcmp(new_key, "descr") == 0) {
+      result.data_type = get_python_string(&cursor);
+    } else if (strcmp(new_key, "fortran_order") == 0) {
+      result.fortran_order = get_python_bool(&cursor);
+    } else if (strcmp(new_key, "shape") == 0) {
+      result.shape = get_python_tuple(&cursor);
+    } else {
+      assert(0 && "unreachable");
+    }
+
+    if (i<2)
+      move_cursor_to_next_key(&cursor);
+  }
+
+  return result;
+}
 
 int main(void) {
   char *magic_string = "\x93NUMPY";
@@ -39,30 +154,19 @@ int main(void) {
     return 1;
   }
 
-  char *descr_str = "'descr'";
-  char *data_type_start = NULL;
-  size_t data_type_len = 0;
-  // char *fortran_order_str = "'fortran_order'";
-  // char *shape_str = "'shape'";
-  if (strncmp(cursor, descr_str, strlen(descr_str)) == 0) {
-    cursor += strlen(descr_str);
-    while (*cursor++ != '\'');
-    data_type_start = cursor;
-    while (*cursor++ != '\'') {
-      data_type_len++;
-    }
-  }
+  char *dict_start = cursor;
+  char *dict_end = cursor;
+  while (*dict_end != '}') dict_end++;
+  size_t dict_len = (size_t)(dict_end - dict_start);
+  char *dict = calloc(dict_len + 1, sizeof(char));
+  memcpy(dict, cursor, dict_len);
 
-  char *data_type = calloc(data_type_len + 1, sizeof(char));
-  if (data_type == NULL) {
-    fprintf(stderr, "Couldn't allocate memory.\n");
-    return 1;
-  }
-  memcpy(data_type, data_type_start, data_type_len);
+  DescrDict descr_dict = parse_dict(dict);
+
+  printf("data_type = %s\n", descr_dict.data_type);
+  printf("fortran_order = %s\n", descr_dict.fortran_order ? "True" : "False");
+  printf("Num of dims = %zu\n", descr_dict.shape.dims);
   
-  printf("data_type = %s\n", data_type);
-
-  free(data_type);
   free(buff_addr);
 
   return 0;
