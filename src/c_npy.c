@@ -5,12 +5,12 @@
 
 #include "c_npy.h"
 
-void move_cursor_to_next_key(char **cursor) {
+static void move_cursor_to_next_key(char **cursor) {
   (*cursor)++;
   while (**cursor!='\'') (*cursor)++;
 }
 
-char* get_python_string(char **pystr) {
+static char* get_python_string(char **pystr) {
   assert(*pystr[0]=='\'');
 
   char *start = *pystr + 1;
@@ -29,7 +29,7 @@ char* get_python_string(char **pystr) {
   return result;
 }
 
-bool get_python_bool(char **pystr) {
+static bool get_python_bool(char **pystr) {
   if (strncmp(*pystr, "True", 4) == 0) {
     *pystr += 4;
     return true;
@@ -40,7 +40,7 @@ bool get_python_bool(char **pystr) {
   assert(0 && "Unreachable");
 }
 
-PythonTuple get_python_tuple(char **pystr) {
+static PythonTuple get_python_tuple(char **pystr) {
   PythonTuple result = {0};
   char *cursor = *pystr;
   char *tuple_start;
@@ -82,7 +82,7 @@ PythonTuple get_python_tuple(char **pystr) {
   return result;
 }
 
-DescrDict parse_dict(char *dictstr) {
+static DescrDict parse_dict(char *dictstr) {
   DescrDict result = {0};
 
   char* new_key;

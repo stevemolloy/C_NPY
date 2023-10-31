@@ -22,16 +22,6 @@ typedef struct {
   DescrDict description;
 } NumpyFileRepr;
 
-void move_cursor_to_next_key(char **cursor);
-
-char* get_python_string(char **pystr);
-
-bool get_python_bool(char **pystr);
-
-PythonTuple get_python_tuple(char **pystr);
-
-DescrDict parse_dict(char *dictstr);
-
 int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr);
 
 #endif // !_C_NPY_H
