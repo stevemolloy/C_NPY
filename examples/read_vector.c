@@ -71,7 +71,7 @@ PythonTuple get_python_tuple(char **pystr) {
     cursor++;
   }
 
-  result.eles = malloc(result.dims * sizeof(size_t));
+  result.eles = calloc(result.dims, sizeof(size_t));
 
   char *tuplestr = calloc((size_t)(tuple_end - tuple_start) + 1, sizeof(char));
   memcpy(tuplestr, tuple_start, (size_t)(tuple_end - tuple_start));
@@ -89,12 +89,13 @@ PythonTuple get_python_tuple(char **pystr) {
     result.eles = realloc(result.eles, result.dims * sizeof(size_t));
   }
 
+  free(tuplestr);
+
   return result;
 }
 
 DescrDict parse_dict(char *dictstr) {
   DescrDict result = {0};
-  result.data_type = calloc(32, sizeof(char));
 
   char* new_key;
 
@@ -118,6 +119,7 @@ DescrDict parse_dict(char *dictstr) {
 
     if (i<2)
       move_cursor_to_next_key(&cursor);
+    free(new_key);
   }
 
   return result;
@@ -167,11 +169,17 @@ int main(void) {
   memcpy(dict, cursor, dict_len);
 
   DescrDict descr_dict = parse_dict(dict);
+  free(dict);
 
   printf("data_type = %s\n", descr_dict.data_type);
   printf("fortran_order = %s\n", descr_dict.fortran_order ? "True" : "False");
   printf("Num of dims = %zu\n", descr_dict.shape.dims);
+  for (size_t dim=0; dim<descr_dict.shape.dims; dim++) {
+    printf("    Dim %zu has size %zu\n", dim, descr_dict.shape.eles[dim]);
+  }
   
+  free(descr_dict.data_type);
+  free(descr_dict.shape.eles);
   free(buff_addr);
 
   return 0;
