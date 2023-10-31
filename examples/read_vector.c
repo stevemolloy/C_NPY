@@ -84,6 +84,11 @@ PythonTuple get_python_tuple(char **pystr) {
     tok = strtok(NULL, ",");
   }
 
+  while (result.eles[result.dims-1] == 0) {
+    result.dims--;
+    result.eles = realloc(result.eles, result.dims * sizeof(size_t));
+  }
+
   return result;
 }
 
