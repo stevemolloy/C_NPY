@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 
 #include "c_npy.h"
@@ -17,13 +18,30 @@ int main(void) {
     return 1;
   }
 
-  printf("Numpy version string: %d.%d\n", numpy_file.major, numpy_file.minor);
-  printf("Data_location: %p\n", (void*)numpy_file.data_location);
-  printf("Data type: %s\n", numpy_file.description.data_type);
-  printf("Fortran order?: %s\n", numpy_file.description.fortran_order ? "True" : "False");
-  printf("Data dimensions: %zu\n", numpy_file.description.shape.dims);
-  for (size_t i=0; i<numpy_file.description.shape.dims; i++) {
-    printf("    Dim[%zu] has size: %zu\n", i, numpy_file.description.shape.eles[i]);
+  // printf("Numpy version string: %d.%d\n", numpy_file.major, numpy_file.minor);
+  // printf("Data_location: %p\n", (void*)numpy_file.data_location);
+  // switch (numpy_file.description.data_type) {
+  //   case CNPY_DOUBLE:
+  //     printf("Data type: DOUBLE\n");
+  //     break;
+  //   case CNPY_FLOAT:
+  //     printf("Data type: FLOAT\n");
+  //     break;
+  //   case CNPY_INT:
+  //     printf("Data type: INT\n");
+  //     break;
+  //   default:
+  //     assert(0 && "Unreachable");
+  // }
+  // printf("Fortran order?: %s\n", numpy_file.description.fortran_order ? "True" : "False");
+  // printf("Data dimensions: %zu\n", numpy_file.description.shape.dims);
+  // for (size_t i=0; i<numpy_file.description.shape.dims; i++) {
+  //   printf("    Dim[%zu] has size: %zu\n", i, numpy_file.description.shape.eles[i]);
+  // }
+
+  double *data = (double*)numpy_file.data_location;
+  for (size_t i=0; i<numpy_file.description.shape.eles[0]; i++) {
+    printf("%e\n", data[i]);
   }
 
   free(numpy_file.description.shape.eles);
