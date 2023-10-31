@@ -17,6 +17,13 @@ typedef struct {
   PythonTuple shape;
 } DescrDict;
 
+typedef struct {
+  unsigned int major;
+  unsigned int minor;
+  char *data_location;
+  DescrDict description;
+} NumpyFileRepr;
+
 void move_cursor_to_next_key(char **cursor) {
   (*cursor)++;
   while (**cursor!='\'') (*cursor)++;
@@ -125,40 +132,28 @@ DescrDict parse_dict(char *dictstr) {
   return result;
 }
 
-int main(void) {
-  char *magic_string = "\x93NUMPY";
-  char *filename = "examples/vector.npy";
-  
-  char *buff_addr;
+int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr) {
   char *cursor;
-  if (read_file_into_mem(filename, &buff_addr) < 0) {
-    fprintf(stderr, "Could not read file: '%s'\n", filename);
-    return 1;
-  }
-
+  char *magic_string = "\x93NUMPY";
   if (strncmp(buff_addr, magic_string, strlen(magic_string)) != 0) {
-    fprintf(stderr, "Not a valid NPY file: '%s'\n", filename);
-    return 1;
+    fprintf(stderr, "Not a valid NPY file\n");
+    return -1;
   }
 
   cursor = buff_addr + strlen(magic_string);
   unsigned int major_version = (unsigned int)*cursor++;
   unsigned int minor_version = (unsigned int)*cursor++;
 
-  printf("Major.minor = %d.%d\n", major_version, minor_version);
-
   size_t hdr_len = (size_t)*(unsigned short int*)(cursor);
-  printf("header length = %zu\n", hdr_len);
 
   char* data_start = cursor + hdr_len;
-  (void)data_start;
 
   cursor += 2;
 
   // Now to scan through the python-style dictionary
   if (*cursor++ != '{') {
-    fprintf(stderr, "Not a valid NPY file: '%s'\n", filename);
-    return 1;
+    fprintf(stderr, "Not a valid NPY file\n");
+    return -1;
   }
 
   char *dict_start = cursor;
@@ -171,15 +166,37 @@ int main(void) {
   DescrDict descr_dict = parse_dict(dict);
   free(dict);
 
-  printf("data_type = %s\n", descr_dict.data_type);
-  printf("fortran_order = %s\n", descr_dict.fortran_order ? "True" : "False");
-  printf("Num of dims = %zu\n", descr_dict.shape.dims);
-  for (size_t dim=0; dim<descr_dict.shape.dims; dim++) {
-    printf("    Dim %zu has size %zu\n", dim, descr_dict.shape.eles[dim]);
-  }
+  nfr->major = major_version;
+  nfr->minor = minor_version;
+  nfr->data_location = data_start;
+  nfr->description = descr_dict;
+
+  return 0;
+}
+
+int main(void) {
+  char *filename = "examples/vector.npy";
   
-  free(descr_dict.data_type);
-  free(descr_dict.shape.eles);
+  char *buff_addr;
+  if (read_file_into_mem(filename, &buff_addr) < 0) {
+    fprintf(stderr, "Could not read file: '%s'\n", filename);
+    return 1;
+  }
+
+  NumpyFileRepr numpy_file = {0};
+  get_numpy_file_repr(buff_addr, &numpy_file);
+
+  printf("Numpy version string: %d.%d\n", numpy_file.major, numpy_file.minor);
+  printf("Data_location: %p\n", (void*)numpy_file.data_location);
+  printf("Data type: %s\n", numpy_file.description.data_type);
+  printf("Fortran order?: %s\n", numpy_file.description.fortran_order ? "True" : "False");
+  printf("Data dimensions: %zu\n", numpy_file.description.shape.dims);
+  for (size_t i=0; i<numpy_file.description.shape.dims; i++) {
+    printf("    Dim[%zu] has size: %zu\n", i, numpy_file.description.shape.eles[i]);
+  }
+
+  free(numpy_file.description.data_type);
+  free(numpy_file.description.shape.eles);
   free(buff_addr);
 
   return 0;
