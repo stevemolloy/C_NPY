@@ -134,9 +134,9 @@ int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr) {
 
   size_t hdr_len = (size_t)*(unsigned short int*)(cursor);
 
-  char* data_start = cursor + hdr_len;
-
   cursor += 2;
+
+  char* data_start = cursor + hdr_len;
 
   // Now to scan through the python-style dictionary
   if (*cursor++ != '{') {
