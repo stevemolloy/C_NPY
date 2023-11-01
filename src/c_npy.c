@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "c_npy.h"
+#include "sm_lib.h"
 
 static void move_cursor_to_next_key(char **cursor) {
   (*cursor)++;
@@ -162,3 +163,19 @@ int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr) {
 
   return 0;
 }
+
+SM_double_array get_numpy_data(NumpyFileRepr nfr) {
+  double *data = (double*)nfr.data_location;
+  size_t total_data_pts = 1;
+  for (size_t i=0; i<nfr.description.shape.dims; i++) {
+    total_data_pts *= nfr.description.shape.eles[i];
+  }
+  SM_double_array result = SM_new_double_array(total_data_pts);
+
+  for (size_t i=0; i<total_data_pts; i++) {
+    SM_add_to_array(&result, data[i]);
+  }
+
+  return result;
+}
+

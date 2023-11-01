@@ -48,11 +48,13 @@ int main(int argc, char **argv) {
     }
   }
 
-  double *data = (double*)numpy_file.data_location;
-  for (size_t i=0; i<numpy_file.description.shape.eles[0]; i++) {
-    printf("%e\n", data[i]);
+  SM_double_array data = get_numpy_data(numpy_file);
+
+  for (size_t i=0; i<data.length; i++) {
+    printf("%e\n", data.data[i]);
   }
 
+  SM_free(data);
   free(numpy_file.description.shape.eles);
   free(buff_addr);
 

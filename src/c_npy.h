@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "sm_lib.h"
+
 typedef enum {
   CNPY_DOUBLE = 0,
   CNPY_FLOAT,
@@ -29,6 +31,7 @@ typedef struct {
 } NumpyFileRepr;
 
 int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr);
+SM_double_array get_numpy_data(NumpyFileRepr nfr);
 
 #endif // !_C_NPY_H
 
