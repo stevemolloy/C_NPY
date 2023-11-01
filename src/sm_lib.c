@@ -24,6 +24,21 @@ SM_float_array SM_new_float_array(size_t initial_cap) {
   return retval;
 }
 
+SM_double_array SM_new_double_array(size_t initial_cap) {
+  SM_double_array retval = (SM_double_array) {
+    .capacity = initial_cap,
+    .length = 0,
+    .data = malloc(initial_cap * sizeof(double))
+  };
+
+  if (retval.data == NULL) {
+    fprintf(stderr, "Could not allocate memory for a new SM_float_array.");
+    exit(1);
+  }
+
+  return retval;
+}
+
 size_t load_two_column_csv(char *fname, SM_float_array *xs, SM_float_array *ys, size_t ignore_lines) {
   int fd = open(fname, O_RDONLY);
   if (fd < 0) {

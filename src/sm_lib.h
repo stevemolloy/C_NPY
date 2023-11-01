@@ -9,10 +9,18 @@ typedef struct {
   float *data;
 } SM_float_array;
 
+typedef struct {
+  size_t capacity;
+  size_t length;
+  double *data;
+} SM_double_array;
+
 size_t load_two_column_csv(char *fname, SM_float_array *xs, SM_float_array *ys, size_t ignore_lines);
 int read_file_into_mem(char *fname, char **buff_addr);
 SM_float_array SM_new_float_array(size_t capacity);
 int SM_count_file_lines(char *fname);
+SM_double_array SM_new_double_array(size_t initial_cap);
+SM_float_array SM_new_float_array(size_t initial_cap);
 
 #define MAXLINELENGTH 100
 
