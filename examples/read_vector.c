@@ -6,13 +6,11 @@
 #include "sm_lib.h"
 
 int main(int argc, char **argv) {
+  char *filename = "examples/vector.npy";
   bool verbose = false;
   if (argc>1) {
-    if (strcmp(argv[1], "-v")==0 || strcmp(argv[1], "--verbose")==0) {
-      verbose = true;
-    }
+    if (strcmp(argv[1], "-v")==0 || strcmp(argv[1], "--verbose")==0) verbose = true;
   }
-  char *filename = "examples/vector.npy";
   
   char *buff_addr;
   if (read_file_into_mem(filename, &buff_addr) < 0) {
@@ -21,9 +19,7 @@ int main(int argc, char **argv) {
   }
 
   NumpyFileRepr numpy_file = {0};
-  if (get_numpy_file_repr(buff_addr, &numpy_file) < 0) {
-    return 1;
-  }
+  if (get_numpy_file_repr(buff_addr, &numpy_file) < 0) return 1;
 
   if (verbose) {
     printf("Numpy version string: %d.%d\n", numpy_file.major, numpy_file.minor);
@@ -49,7 +45,6 @@ int main(int argc, char **argv) {
   }
 
   SM_double_array data = get_numpy_data(numpy_file);
-
   for (size_t i=0; i<data.length; i++) {
     printf("%e\n", data.data[i]);
   }
@@ -60,3 +55,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
