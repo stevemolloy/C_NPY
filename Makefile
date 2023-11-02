@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wconversion -std=c11 -ggdb
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wconversion -std=c18 -ggdb -O0
 CINCLUDES = -I./src
 CLIBS =
 
@@ -10,16 +10,11 @@ BINDIR = bin
 
 # List of example source files
 EXAMPLE_SRCS = $(wildcard $(EXAMPLES)/*.c)
-
-# List of example executables
 EXAMPLE_BINS = $(patsubst $(EXAMPLES)/%.c, $(BINDIR)/%, $(EXAMPLE_SRCS))
 
 # List of object files from the src directory
 MAIN_SRCS = $(wildcard $(SRC)/*.c)
 MAIN_OBJS = $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(MAIN_SRCS))
-
-# List of all object files to link
-OBJS = $(MAIN_OBJS)
 
 all: $(EXAMPLE_BINS)
 
