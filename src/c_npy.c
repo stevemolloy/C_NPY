@@ -41,8 +41,8 @@ static bool get_python_bool(char **pystr) {
   assert(0 && "Unreachable");
 }
 
-static PythonTuple get_python_tuple(char **pystr) {
-  PythonTuple result = {0};
+static DimDetails get_python_tuple(char **pystr) {
+  DimDetails result = {0};
   char *cursor = *pystr;
   char *tuple_start;
   char *tuple_end;
@@ -164,19 +164,16 @@ int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr) {
   return 0;
 }
 
-SM_double_array get_numpy_data(NumpyFileRepr nfr) {
+void get_numpy_data(NumpyFileRepr nfr, SM_double_array *result) {
   double *data = (double*)nfr.data_location;
   size_t total_data_pts = 1;
   for (size_t i=0; i<nfr.description.shape.dims; i++) {
     total_data_pts *= nfr.description.shape.eles[i];
   }
-  SM_double_array result = SM_new_double_array(total_data_pts);
 
   for (size_t i=0; i<total_data_pts; i++) {
-    SM_add_to_array(&result, data[i]);
+    SM_add_to_array(result, data[i]);
   }
-
-  return result;
 }
 
 void print_numpy_file_info(NumpyFileRepr nfr) {
@@ -212,7 +209,7 @@ int get_data_from_npy_file(char* fname, SM_double_array *data) {
   NumpyFileRepr numpy_file = {0};
   if (get_numpy_file_repr(buff_addr, &numpy_file) < 0) return 1;
 
-  *data = get_numpy_data(numpy_file);
+  get_numpy_data(numpy_file, data);
 
   free(numpy_file.description.shape.eles);
   free(buff_addr);

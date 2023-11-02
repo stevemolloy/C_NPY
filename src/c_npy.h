@@ -15,12 +15,12 @@ typedef enum {
 typedef struct {
   size_t *eles;
   size_t dims;
-} PythonTuple;
+} DimDetails;
 
 typedef struct {
   NpyType data_type;
   bool fortran_order;
-  PythonTuple shape;
+  DimDetails shape;
 } DescrDict;
 
 typedef struct {
@@ -31,7 +31,7 @@ typedef struct {
 } NumpyFileRepr;
 
 int get_numpy_file_repr(char *buff_addr, NumpyFileRepr* nfr);
-SM_double_array get_numpy_data(NumpyFileRepr nfr);
+void get_numpy_data(NumpyFileRepr nfr, SM_double_array *result);
 void print_numpy_file_info(NumpyFileRepr nfr);
 int get_data_from_npy_file(char* fname, SM_double_array *data);
 
