@@ -179,3 +179,44 @@ SM_double_array get_numpy_data(NumpyFileRepr nfr) {
   return result;
 }
 
+void print_numpy_file_info(NumpyFileRepr nfr) {
+  printf("Numpy version string: %d.%d\n", nfr.major, nfr.minor);
+  printf("Data_location: %p\n", (void*)nfr.data_location);
+  switch (nfr.description.data_type) {
+    case CNPY_DOUBLE:
+      printf("Data type: DOUBLE\n");
+      break;
+    case CNPY_FLOAT:
+      printf("Data type: FLOAT\n");
+      break;
+    case CNPY_INT:
+      printf("Data type: INT\n");
+      break;
+    default:
+      assert(0 && "Unreachable");
+  }
+  printf("Fortran order?: %s\n", nfr.description.fortran_order ? "True" : "False");
+  printf("Dimensionality of data: %zu\n", nfr.description.shape.dims);
+  for (size_t i=0; i<nfr.description.shape.dims; i++) {
+    printf("    Dim[%zu] has size: %zu\n", i, nfr.description.shape.eles[i]);
+  }
+}
+
+int get_data_from_npy_file(char* fname, SM_double_array *data) {
+  char *buff_addr;
+  if (read_file_into_mem(fname, &buff_addr) < 0) {
+    fprintf(stderr, "Could not read file: '%s'\n", fname);
+    return -1;
+  }
+
+  NumpyFileRepr numpy_file = {0};
+  if (get_numpy_file_repr(buff_addr, &numpy_file) < 0) return 1;
+
+  *data = get_numpy_data(numpy_file);
+
+  free(numpy_file.description.shape.eles);
+  free(buff_addr);
+
+  return 1;
+}
+
